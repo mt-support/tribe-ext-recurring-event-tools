@@ -1,16 +1,16 @@
 <?php
 /**
  * Plugin Name:       The Events Calendar Pro Extension: Recurring Events Filters
- * Plugin URI:        https://theeventscalendar.com/extensions/recurring-event-filters/
- * GitHub Plugin URI: https://github.com/mt-support/tribe-ext-recurring-event-filters
+ * Plugin URI:        https://theeventscalendar.com/extensions/recurring-events-filters/
+ * GitHub Plugin URI: https://github.com/mt-support/tribe-ext-recurring-events-filters/
  * Description:       Show recurring events filters in the posts edit screen for Events.
  * Version:           1.0.0
- * Extension Class:   Tribe\Extensions\Recurring_Event_Filters\Main
+ * Extension Class:   Tribe\Extensions\Recurring_Events_Filters\Main
  * Author:            Modern Tribe, Inc.
  * Author URI:        http://m.tri.be/1971
  * License:           GPL version 3 or any later version
  * License URI:       https://www.gnu.org/licenses/gpl-3.0.html
- * Text Domain:       tribe-ext-recurring-event-filters
+ * Text Domain:       tribe-ext-recurring-events-filters
  *
  *     This plugin is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
  *     GNU General Public License for more details.
  */
 
-namespace Tribe\Extensions\Recurring_Event_Filters;
+namespace Tribe\Extensions\Recurring_Events_Filters;
 
 use Tribe__Extension;
 
@@ -51,8 +51,8 @@ if (
 		 */
 		public function init() {
 			// Load plugin textdomain
-			// Don't forget to generate the 'languages/tribe-ext-recurring-event-filters.pot' file
-			load_plugin_textdomain( 'tribe-ext-recurring-event-filters', false,
+			// Don't forget to generate the 'languages/tribe-ext-recurring-events-filters.pot' file
+			load_plugin_textdomain( 'tribe-ext-recurring-events-filters', false,
 				basename( dirname( __FILE__ ) ) . '/languages/' );
 
 			if ( ! $this->php_version_check() ) {
@@ -81,11 +81,11 @@ if (
 				) {
 					$message = '<p>';
 					$message .= sprintf( __( '%s requires PHP version %s or newer to work. Please contact your website host and inquire about updating PHP.',
-						'tribe-ext-recurring-event-filters' ), $this->get_name(), $php_required_version );
+						'tribe-ext-recurring-events-filters' ), $this->get_name(), $php_required_version );
 					$message .= sprintf( ' <a href="%1$s">%1$s</a>', 'https://wordpress.org/about/requirements/' );
 					$message .= '</p>';
 
-					tribe_notice( 'tribe-ext-recurring-event-filters' . '-php-version', $message, [ 'type' => 'error' ] );
+					tribe_notice( 'tribe-ext-recurring-events-filters' . '-php-version', $message, [ 'type' => 'error' ] );
 				}
 
 				return false;
@@ -141,7 +141,7 @@ if (
 					// Get only events that are in a series, either the "master" or "children" events.
 					'tribe-where' => 'in_series,true',
 				], 'edit.php' ) ),
-				esc_html__( 'Recurring', 'tribe-ext-recurring-event-filters' ),
+				esc_html__( 'Recurring', 'tribe-ext-recurring-events-filters' ),
 				$recurring_events_count
 			);
 
@@ -153,7 +153,7 @@ if (
 					// Get events that are in a series and not have a parent, this means the "master" ones.
 					'tribe-where' => [ 'in_series,true', 'parent,0' ],
 				], 'edit.php' ) ),
-				esc_html__( 'Recurring (master)', 'tribe-ext-recurring-event-filters' ),
+				esc_html__( 'Recurring (master)', 'tribe-ext-recurring-events-filters' ),
 				$master_recurring_events_count
 			);
 
@@ -257,7 +257,7 @@ if (
 
 			foreach ( $what_fetch as $what => $fetch ) {
 				$trigger  = \Tribe__Cache_Listener::TRIGGER_SAVE_POST;
-				$cache_id = 'tribe-ext-recurring-event-filters-' . $what;
+				$cache_id = 'tribe-ext-recurring-events-filters-' . $what;
 				$value   = $cache->get( $cache_id, $trigger, false, 0 );
 
 				if ( false === $value ) {

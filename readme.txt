@@ -1,9 +1,9 @@
-=== The Events Calendar Pro Extension: Recurring Event Tools ===
+=== The Events Calendar Pro Extension: Recurring Events Filters ===
 Contributors: ModernTribe
 Donate link: http://m.tri.be/29
-Tags: events, calendar
+Tags: events, calendar, admin, filter
 Requires at least: 4.5
-Tested up to: 5.3.2
+Tested up to: 5.4
 Requires PHP: 5.6
 Stable tag: 1.0.0
 License: GPL version 3 or any later version
