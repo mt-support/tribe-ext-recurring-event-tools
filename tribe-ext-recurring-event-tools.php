@@ -25,7 +25,6 @@
 
 namespace Tribe\Extensions\Recurring_Event_Tools;
 
-use Tribe__Autoloader;
 use Tribe__Extension;
 
 // Do not load unless Tribe Common is fully loaded and our class does not yet exist.
@@ -37,11 +36,6 @@ if (
 	 * Extension main class, class begins loading on init() function.
 	 */
 	class Main extends Tribe__Extension {
-
-		/**
-		 * @var Tribe__Autoloader
-		 */
-		private $class_loader;
 
 		/**
 		 * Setup the Extension's properties.
@@ -58,13 +52,12 @@ if (
 		public function init() {
 			// Load plugin textdomain
 			// Don't forget to generate the 'languages/tribe-ext-recurring-event-tools.pot' file
-			load_plugin_textdomain( 'tribe-ext-recurring-event-tools', false, basename( dirname( __FILE__ ) ) . '/languages/' );
+			load_plugin_textdomain( 'tribe-ext-recurring-event-tools', false,
+				basename( dirname( __FILE__ ) ) . '/languages/' );
 
 			if ( ! $this->php_version_check() ) {
 				return;
 			}
-
-			$this->class_loader();
 
 			add_filter( 'views_edit-tribe_events', [ $this, 'filter_views_edit' ] );
 			add_filter( 'query_vars', [ $this, 'filter_query_vars' ] );
@@ -87,7 +80,8 @@ if (
 					&& current_user_can( 'activate_plugins' )
 				) {
 					$message = '<p>';
-					$message .= sprintf( __( '%s requires PHP version %s or newer to work. Please contact your website host and inquire about updating PHP.', 'tribe-ext-recurring-event-tools' ), $this->get_name(), $php_required_version );
+					$message .= sprintf( __( '%s requires PHP version %s or newer to work. Please contact your website host and inquire about updating PHP.',
+						'tribe-ext-recurring-event-tools' ), $this->get_name(), $php_required_version );
 					$message .= sprintf( ' <a href="%1$s">%1$s</a>', 'https://wordpress.org/about/requirements/' );
 					$message .= '</p>';
 
@@ -101,35 +95,13 @@ if (
 		}
 
 		/**
-		 * Use Tribe Autoloader for all class files within this namespace in the 'src' directory.
-		 *
-		 * TODO: Delete this method and its usage throughout this file if there is no `src` directory, such as if there are no settings being added to the admin UI.
-		 *
-		 * @return Tribe__Autoloader
-		 */
-		public function class_loader() {
-			if ( empty( $this->class_loader ) ) {
-				$this->class_loader = new Tribe__Autoloader;
-				$this->class_loader->set_dir_separator( '\\' );
-				$this->class_loader->register_prefix(
-					__NAMESPACE__ . '\\',
-					__DIR__ . DIRECTORY_SEPARATOR . 'src'
-				);
-			}
-
-			$this->class_loader->register_autoloader();
-
-			return $this->class_loader;
-		}
-
-		/**
 		 * Casts string 'true' and 'false' values to actual boolean values.
 		 *
 		 * @param mixed $candidate The candidate to try and cast to boolean.
 		 *
 		 * @return bool|mixed The candidate value cast to boolean, or the original value.
 		 */
-		function cast_bool( $candidate ) {
+		protected function cast_bool( $candidate ) {
 			if ( $candidate !== 'true' && $candidate !== 'false' ) {
 				return $candidate;
 			}
@@ -159,7 +131,8 @@ if (
 		 *
 		 * @return array<string,string> The filtered list of links.
 		 */
-		function filter_views_edit( $views ) {
+		public function filter_views_edit( $views ) {
+			list( $recurring_events_count, $master_recurring_events_count ) = $this->get_counts();
 			$views['tribe-recurring-all'] = sprintf(
 				'<a href="%s">%s <span class="count">(%d)</span></a>',
 				esc_url( add_query_arg( [
@@ -169,7 +142,7 @@ if (
 					'tribe-where' => 'in_series,true',
 				], 'edit.php' ) ),
 				'Recurring',
-				tribe_events()->where( 'in_series', true )->where( 'status', 'any' )->found()
+				$recurring_events_count
 			);
 
 			$views['tribe-recurring-first'] = sprintf(
@@ -181,7 +154,7 @@ if (
 					'tribe-where' => [ 'in_series,true', 'parent,0' ],
 				], 'edit.php' ) ),
 				'Recurring (master)',
-				tribe_events()->where( 'in_series', true )->where( 'parent', 0 )->where( 'status', 'any' )->found()
+				$master_recurring_events_count
 			);
 
 			return $views;
@@ -194,7 +167,7 @@ if (
 		 *
 		 * @return array<string> The modified list of publicly available query vars.
 		 */
-		function filter_query_vars( array $public_query_vars = [] ) {
+		public function filter_query_vars( array $public_query_vars = [] ) {
 			$public_query_vars[] = 'tribe-orm';
 			$public_query_vars[] = 'tribe-where';
 
@@ -208,7 +181,7 @@ if (
 		 *
 		 * @param \WP_Query $wp_query The WordPress query object to alter if required.
 		 */
-		function on_pre_get_posts( \WP_Query $wp_query ) {
+		public function on_pre_get_posts( \WP_Query $wp_query ) {
 			$orm_clauses       = $wp_query->get( 'tribe-orm', false );
 			$orm_where_clauses = $wp_query->get( 'tribe-where', false );
 
@@ -261,5 +234,43 @@ if (
 			}
 		}
 
-	} // end class
-} // end if class_exists check
+		/**
+		 * Returns the total count of recurring events and master recurring events.
+		 *
+		 * @return array<int,int> The count of all recurring events and master recurring events.
+		 */
+		protected function get_counts() {
+			$cache = tribe_cache();
+
+			$what_fetch = [
+				'count'        => static function () {
+					return tribe_events()->where( 'in_series', true )->where( 'status', 'any' )->found();
+				},
+				'master-count' => static function () {
+					return tribe_events()
+						->where( 'in_series', true )
+						->where( 'status', 'any' )
+						->where( 'parent', 0 )
+						->found();
+				}
+			];
+
+			foreach ( $what_fetch as $what => $fetch ) {
+				$trigger  = \Tribe__Cache_Listener::TRIGGER_SAVE_POST;
+				$cache_id = 'tribe-ext-recurring-event-tools-' . $what;
+				$cached   = $cache->get( $cache_id, $trigger, false, 0 );
+
+				$value = $fetch();
+
+				$value = false === $cached ?
+					$cache->set( $cache_id, $value, 0, $trigger )
+					: $cached;
+
+				$values[] = $value;
+			}
+
+
+			return $values;
+		}
+	}
+}
