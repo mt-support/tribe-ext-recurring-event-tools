@@ -258,13 +258,12 @@ if (
 			foreach ( $what_fetch as $what => $fetch ) {
 				$trigger  = \Tribe__Cache_Listener::TRIGGER_SAVE_POST;
 				$cache_id = 'tribe-ext-recurring-event-tools-' . $what;
-				$cached   = $cache->get( $cache_id, $trigger, false, 0 );
+				$value   = $cache->get( $cache_id, $trigger, false, 0 );
 
-				$value = $fetch();
-
-				$value = false === $cached ?
-					$cache->set( $cache_id, $value, 0, $trigger )
-					: $cached;
+				if ( false === $value ) {
+					$value = $fetch();
+					$cache->set( $cache_id, $value, 0, $trigger );
+				}
 
 				$values[] = $value;
 			}
