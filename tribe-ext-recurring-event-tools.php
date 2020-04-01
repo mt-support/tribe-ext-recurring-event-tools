@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:       The Events Calendar Pro Extension: Recurring Event Filters
+ * Plugin Name:       The Events Calendar Pro Extension: Recurring Events Filters
  * Plugin URI:        https://theeventscalendar.com/extensions/recurring-event-filters/
  * GitHub Plugin URI: https://github.com/mt-support/tribe-ext-recurring-event-filters
  * Description:       Show recurring events filters in the posts edit screen for Events.
