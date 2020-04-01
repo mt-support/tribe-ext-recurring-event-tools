@@ -153,7 +153,7 @@ if (
 					// Get events that are in a series and not have a parent, this means the "master" ones.
 					'tribe-where' => [ 'in_series,true', 'parent,0' ],
 				], 'edit.php' ) ),
-				esc_html( 'Recurring (master)', 'tribe-ext-recurring-event-filters'),
+				esc_html__( 'Recurring (master)', 'tribe-ext-recurring-event-filters' ),
 				$master_recurring_events_count
 			);
 
